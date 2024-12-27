@@ -1,28 +1,43 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include "menu.h"
 
-Dish dish[100]={0};
+Dish *dish=NULL;
 int n = 0;
 
-int load_database(const char *filename, Dish dishArray[100], int *n){
+int load_database(const char *filename, Dish **dishArray, int *n){
 	FILE *file = fopen(filename, "r");
 	if(!file){
 		printf("Нет файла %s.\n", filename);
 		return -1;
 	}
 	*n = 0;
-	while(fscanf(file, "%99[^|]|%f|%f|%99[^\n]\n", dishArray[*n].name, &dishArray[*n].price, &dishArray[*n].weight, dishArray[*n].description) == 4){
+
+	int start_volume = 10;
+	*dishArray=(Dish*)malloc(start_volume *sizeof(Dish));
+	if(*dishArray == NULL){
+		printf("Ошибка выделения памятию.\n");
+		fclose(file);
+		return -1;
+	}
+
+	while(fscanf(file, "%99[^|]|%f|%f|%99[^\n]\n", (*dishArray)[*n].name, &(*dishArray)[*n].price, &(*dishArray)[*n].weight, (*dishArray)[*n].description) == 4){
 		(*n)++;
-		if(*n >= 100){
-			printf("Слишком много блюд (100).\n");
-			break;
+		if(*n >= start_volume){
+			start_volume *= 2;
+			*dishArray = (Dish *)realloc(*dishArray, start_volume * sizeof(Dish));
+			if(*dishArray == NULL){
+				printf("Ошибка перераспределения.\n");
+				fclose(file);
+				return -1;
+			}
 		}
 	}
 	fclose(file);
 	return 0;
 }
 
-int Save(const char *filename, Dish dishArray[100], int n){
+int Save(const char *filename, Dish *dishArray, int n){
 	FILE *file = fopen(filename, "w");
 	if (!file){
 		printf("Не удалось открыть файл %s для записи.\n", filename);
@@ -49,6 +64,11 @@ void copyStr(char *suda, const char *otsuda) {
 
 void Init(){
 	n = 0;
+	dish = (Dish*)malloc(10 * sizeof(Dish));
+	if(dish == NULL){
+		printf("Ошибка.\n");
+		exit(1);
+	}
 }
 
 void Print() {
@@ -58,10 +78,15 @@ void Print() {
 	}
 }
 
-int Add(char *name, float price, float weight, char *description) {
-	if(n >= 100){
-		printf("Блюдо не добавлено.\n");
-		return -1;
+int Add(char *name, float price, float weight, char *description){
+	int start_volume = 10;
+	if(n >= start_volume){
+		start_volume *= 2;
+		dish = (Dish *)realloc(dish, start_volume *sizeof(Dish));
+		if(dish == NULL){
+			printf("Блюдо не добавлено. Ошибка с памятью\n");
+			return -1;
+		}
 	}
 	copyStr(dish[n].name, name);
 	dish[n].price = price;
@@ -111,6 +136,11 @@ int Remuve(int index){
 		printf("Ошибка при сохранении изменений в файл.\n");
 		return -1;
 	}
+
+	if(n < 100){
+		dish = (Dish*)realloc(dish, n * sizeof(Dish));
+	}
+
 
 	printf("Блюдо успешно удалено.\n");
 	return 0;

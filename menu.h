@@ -5,11 +5,11 @@ typedef struct {
     char description[100];
 } Dish;
 
-extern Dish dish[100];
+extern Dish *dish;
 extern int n;
 
-int load_database(const char *filename, Dish dishArray[100], int *n);
-int Save(const char *filename, Dish dishArray[100], int n);
+int load_database(const char *filename, Dish **dishArray, int *n);
+int Save(const char *filename, Dish *dishArray, int n);
 void copyStr(char *suda, const char *otsuda);
 void Init();
 void Print();

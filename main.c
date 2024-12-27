@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include "menu.h"
 
-extern Dish dish[100];
+extern Dish *dish;
 extern int n;
 
 int main(){
 	const char *filename = "menu";
 
-	if(load_database(filename, dish, &n) != 0){
+	if(load_database(filename, &dish, &n) != 0){
 		printf("Ошибка загрузки базы данных.\n");
+		free(dish);
 		return 1;
 	}
 
@@ -82,5 +83,6 @@ int main(){
 		printf("Выберите от 1 до 5!\n");
 		break;
 	}
+	free(dish);
 	return 0;
 }
